@@ -4,4 +4,8 @@
    	<string name="app_name">fctexun</string>
 	<string name="no_orientation">Can not find orientation sensor. Are you in virtual device?</string>
 	
+<string name="menu_pause">Pause</string>
+<string name="menu_resume">Resume</string>
+<string name="menu_exit">Exit</string>
+<string name="profile_filepath">fctexun</string>
 </resources>
