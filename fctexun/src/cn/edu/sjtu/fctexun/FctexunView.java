@@ -2,13 +2,7 @@ package cn.edu.sjtu.fctexun;
 
 
 
-import java.util.List;
-
 import android.content.Context;
-import android.hardware.Sensor;
-import android.hardware.SensorEvent;
-import android.hardware.SensorEventListener;
-import android.hardware.SensorManager;
 import android.os.Handler;
 import android.os.Message;
 import android.os.PowerManager;
@@ -19,10 +13,9 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceHolder.Callback;
 import android.view.SurfaceView;
 
-public class FctexunView extends SurfaceView implements Callback , SensorEventListener {
+public class FctexunView extends SurfaceView implements Callback {
     
     private FctexunThread thread;
-    private SensorManager sensor;
     private Context context;
     
     private PowerManager pm;
@@ -50,14 +43,14 @@ public class FctexunView extends SurfaceView implements Callback , SensorEventLi
     
     @Override
     public void onWindowFocusChanged(boolean hasWindowFocus) {
-        if (!hasWindowFocus) thread.pause();
+        if (!hasWindowFocus) thread.onPause();
     }
     
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         super.onTouchEvent(event);
         if(event.getAction()==MotionEvent.ACTION_UP){
-            thread.tap();
+            thread.onTap();
             return true;
         }
         return false;
@@ -76,32 +69,25 @@ public class FctexunView extends SurfaceView implements Callback , SensorEventLi
             @Override
             public void handleMessage(Message m) {
             	if(m.arg1==PAUSE_SENSOR){
-            		stopSensor();
+            		thread.stopSensor();
             	}
             	if(m.arg1==RESUME_SENSOR){
-            		startSensor();
+            		thread.startSensor();
             	}
             }
         });
         
-        startSensor(); 
+        
         wl = pm.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK, "fctexun");
         wl.acquire();
         
         thread.setRunning(true);
         thread.start();
+        
+        thread.startSensor(); 
     }
 
-	private void startSensor() {
-		sensor = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
-        List<Sensor> sensors=sensor.getSensorList(SensorManager.SENSOR_ORIENTATION);
-        if(sensors.size()>0){
-            sensor.registerListener(this,  sensors.get(0),
-                SensorManager.SENSOR_DELAY_FASTEST);
-        }else{
-            Log.e("fctexun","No orientation device found!");
-        }
-	}
+
 
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
@@ -119,27 +105,19 @@ public class FctexunView extends SurfaceView implements Callback , SensorEventLi
 	                thread.join();
 	                retry = false;
 	            } catch (InterruptedException e) {
+	            	Log.e("fctexun", e.getClass().getCanonicalName());
+	            	for(StackTraceElement ste:e.getStackTrace()){
+	            		Log.e("fctexun",ste.toString());
+	            	}
 	            }
 	        }
     	}finally{
     		if (wl!=null && wl.isHeld())
     			wl.release();
-    		stopSensor();
+    		thread.stopSensor();
     	}
 	}
 
-	private void stopSensor() {
-		sensor.unregisterListener(this);
-	}
 
-    @Override
-    public void onAccuracyChanged(Sensor sensor, int arg1) {
-        // do nothing
-    }
-
-    @Override
-    public void onSensorChanged(SensorEvent event) {
-        thread.onSensorChanged(event);
-    }
 
 }

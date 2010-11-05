@@ -68,7 +68,7 @@ public class FctexunActivity extends Activity {
     	case MENU_RESUME:
     		Log.e("fctexun","menu resume");
     		view.bringToFront();
-    		view.getThread().doResume();
+    		view.getThread().onResume();
     		return true;
     	case MENU_EXIT:
     		Log.e("fctexun","menu exit");
